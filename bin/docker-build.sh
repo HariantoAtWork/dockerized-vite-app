@@ -132,14 +132,23 @@ if [ "$BUILD_NEEDED" = true ]; then
         npm install -g bun
     fi
 
-    echo "[BUILD] --- Running \`bun run ci\`..."
-    bun run ci
+    echo "[BUILD] --- Installing dependencies with Bun..."
+    bun install
 
-    echo "[BUILD] Waiting for generated output folder to be created..."
-    while [ ! -d "${APP_OUTPUT}" ]; do
+    echo "[BUILD] --- Running \`bun run build\`..."
+    bun run build
+
+    echo "[BUILD] Waiting for Vite dist output..."
+    while [ ! -d "${APP_DIST}" ]; do
         sleep 2
     done
-    echo "[BUILD] Generated output folder created."
+    echo "[BUILD] Dist folder created."
+
+    if [ -f "${APP_DIST_INDEX}" ]; then
+        echo "[BUILD] Found ${APP_DIST_INDEX}."
+    else
+        echo "[BUILD] Warning: ${APP_DIST_INDEX} not found (dist exists)."
+    fi
 
     echo "[BUILD] Build completed successfully!"
 else
