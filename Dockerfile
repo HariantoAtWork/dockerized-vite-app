@@ -44,8 +44,8 @@ RUN mkdir -p /var/log/supervisor
 # --- FINAL ---
 FROM scripts AS final
 
-# Expose port 3000
-EXPOSE 3000
+# Expose Vite preview port (default)
+EXPOSE 4173
 
 # Start supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -1,6 +1,6 @@
-# Nuxt.js Docker Application
+# Vite (Vue) Docker Application
 
-A containerised Nuxt.js application with automated Git-based deployment, continuous monitoring, and intelligent build management using Docker Compose and Supervisor.
+A containerised Vite (Vue) application with automated Git-based deployment, continuous monitoring, and intelligent build management using Docker Compose and Supervisor.
 
 ## 🚀 Features
 
@@ -15,7 +15,7 @@ A containerised Nuxt.js application with automated Git-based deployment, continu
 ## 📋 Prerequisites
 
 - Docker and Docker Compose
-- Git access to your Nuxt.js repository
+- Git access to your Vite (Vue) repository
 - GitHub Personal Access Token (for private repositories)
 
 ## 🛠️ Quick Start
@@ -27,7 +27,7 @@ Create a `.env` file for Docker environment variables:
 ```bash
 # Docker environment variables
 GITHUB_REPO_URL=https://YOUR_TOKEN@github.com/username/repository.git
-DOCKER_HUB_IMAGE=your-registry/nuxt-app:latest
+DOCKER_HUB_IMAGE=your-registry/vite-app:latest
 
 # Logging Configuration
 VERBOSE_LOGGING=true  # Set to false to disable verbose logging (only show errors)
@@ -38,7 +38,7 @@ Create a `.env.app` file for application-specific environment variables:
 ```bash
 # Application environment variables
 NODE_ENV=production
-# Add your Nuxt.js app-specific variables here
+# Add your Vite app-specific variables here
 # e.g., API_URL, DATABASE_URL, etc.
 ```
 
@@ -71,7 +71,7 @@ The application uses a multi-stage Docker build with the following components:
 - **Base Image**: Node.js 22 Alpine
 - **Package Managers**: Bun (primary), pnpm (alternative)
 - **Process Manager**: Supervisor
-- **File Watcher**: nodemon
+- **Preview Server**: `vite preview`
 
 ### Process Management
 
@@ -80,13 +80,12 @@ Supervisor manages three main processes:
 1. **Build Process** (`docker-build.sh`)
    - Clones/updates the Git repository
    - Installs dependencies using Bun (primary package manager)
-   - Builds the Nuxt.js application
+   - Builds the Vite application (`bun run build`)
    - Manages build state and completion flags
 
 2. **Application Process** (`docker-run.sh`)
    - Waits for build completion
-   - Starts the Nuxt.js server
-   - Uses nodemon for development file watching
+   - Starts the Vite preview server (`bun run preview`)
 
 3. **Watcher Process** (`docker-watch.sh`)
    - Monitors repository for new commits
@@ -97,7 +96,7 @@ Supervisor manages three main processes:
 
 ```
 /app/                    # Application root
-├── .output/            # Built application output
+├── dist/               # Built application output (Vite)
 ├── .current_commit     # Current commit hash
 ├── .last_commit        # Latest commit hash
 ├── .build-complete.flag # Build completion flag
@@ -132,7 +131,7 @@ Supervisor manages three main processes:
 
 ### Port Configuration
 
-- **Container**: 3000 (internal)
+- **Container**: 4173 (internal, Vite preview default)
 - **Host**: 3300 (external)
 
 ## 📝 Scripts
@@ -151,8 +150,7 @@ Handles repository cloning, dependency installation, and application building:
 Manages application startup:
 
 - Waits for build completion
-- Starts the Nuxt.js server
-- Uses nodemon for development file watching
+- Starts the Vite preview server on `0.0.0.0:4173` (default)
 
 ### Watch Script (`docker-watch.sh`)
 
@@ -198,7 +196,7 @@ The application includes built-in health checks:
 docker-compose ps
 
 # View health check logs
-docker inspect nuxt-app_nuxt-app_1 | grep -A 10 Health
+docker inspect dockerized-vite-app_vite-app_1 | grep -A 10 Health
 ```
 
 ## 🔍 Monitoring & Logs
@@ -207,25 +205,26 @@ docker inspect nuxt-app_nuxt-app_1 | grep -A 10 Health
 
 ```bash
 # View all supervisor logs
-docker-compose exec nuxt-app tail -f /var/log/supervisor/supervisord.log
+docker-compose exec vite-app tail -f /var/log/supervisor/supervisord.log
 
 # View specific process logs
-docker-compose exec nuxt-app tail -f /var/log/supervisor/build.log
-docker-compose exec nuxt-app tail -f /var/log/supervisor/app.log
-docker-compose exec nuxt-app tail -f /var/log/supervisor/watcher.log
+docker-compose exec vite-app tail -f /var/log/supervisor/build.log
+docker-compose exec vite-app tail -f /var/log/supervisor/app.log
+docker-compose exec vite-app tail -f /var/log/supervisor/watcher.log
+docker-compose exec vite-app tail -f /var/log/supervisor/build.log /var/log/supervisor/app.log /var/log/supervisor/watcher.log
 ```
 
 ### Process Management
 
 ```bash
 # Check supervisor status
-docker-compose exec nuxt-app supervisorctl status
+docker-compose exec vite-app supervisorctl status
 
 # Restart specific process
-docker-compose exec nuxt-app supervisorctl restart app
+docker-compose exec vite-app supervisorctl restart app
 
 # Restart all processes
-docker-compose exec nuxt-app supervisorctl restart all
+docker-compose exec vite-app supervisorctl restart all
 ```
 
 ## 🛠️ Troubleshooting
@@ -241,35 +240,35 @@ docker-compose exec nuxt-app supervisorctl restart all
 2. **Build Failures**
    ```bash
    # Check build logs
-   docker-compose exec nuxt-app tail -f /var/log/supervisor/build.log
+   docker-compose exec vite-app tail -f /var/log/supervisor/build.log
    ```
 
 3. **Application Not Starting**
    ```bash
    # Check if build completed
-   docker-compose exec nuxt-app ls -la /app/.build-complete.flag
+   docker-compose exec vite-app ls -la /app/.build-complete.flag
    
    # Check app logs
-   docker-compose exec nuxt-app tail -f /var/log/supervisor/app.log
+   docker-compose exec vite-app tail -f /var/log/supervisor/app.log
    ```
 
 4. **Watcher Not Working**
    ```bash
    # Check watcher logs
-   docker-compose exec nuxt-app tail -f /var/log/supervisor/watcher.log
+   docker-compose exec vite-app tail -f /var/log/supervisor/watcher.log
    
    # Check supervisor status
-   docker-compose exec nuxt-app supervisorctl status
+   docker-compose exec vite-app supervisorctl status
    ```
 
 ### Manual Operations
 
 ```bash
 # Force rebuild
-docker-compose exec nuxt-app supervisorctl restart build
+docker-compose exec vite-app supervisorctl restart build
 
 # Manual repository update
-docker-compose exec nuxt-app bash
+docker-compose exec vite-app sh
 cd /app/[repository]
 git pull origin main
 ```
@@ -278,7 +277,7 @@ git pull origin main
 
 ### Adding New Features
 
-1. Update your Nuxt.js application in the repository
+1. Update your Vite application in the repository
 2. Commit and push changes
 3. The watcher will automatically detect changes and rebuild
 4. Monitor logs to ensure successful deployment

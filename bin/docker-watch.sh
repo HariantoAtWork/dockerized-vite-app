@@ -99,6 +99,12 @@ while true; do
                 sleep 2
             done
 
+            # Wait for Vite dist output (extra safety before starting preview)
+            log_info "Waiting for Vite dist output..."
+            while [ ! -d "${APP_DIST}" ]; do
+                sleep 2
+            done
+
             # Start the app
             restart_app
 

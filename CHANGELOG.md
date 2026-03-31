@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-03-31T21:46:20+0200]
+
+### Changed
+- Switched the container runtime from Nuxt `.output` server to Vite (Vue) `vite preview`
+- Standardised the preview server to run on `0.0.0.0:3000` (overriding Vite default `4173`) to keep `3300:3000` Docker port mapping stable
+- Updated build/run/watch scripts to use `dist/` as the build artefact
+- Renamed Docker Compose service from `nuxt-app` to `vite-app`
+
+## [2026-03-31T21:47:21+0200]
+
+### Changed
+- Switched Vite preview back to its default port `4173`
+- Updated Docker Compose port mapping to `3300:4173` and updated the healthcheck accordingly
+
 ## [2025-09-09T15:45:05+0200]
 
 ### Added

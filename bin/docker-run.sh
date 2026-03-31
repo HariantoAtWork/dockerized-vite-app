@@ -24,16 +24,14 @@ done
 
 log_info "Build complete. Starting application..."
 
-log_info "Waiting for generated output folder to be created..."
-while [ ! -d "${APP_OUTPUT}" ]; do
+log_info "Waiting for Vite dist output to be created..."
+while [ ! -d "${APP_DIST}" ]; do
     sleep 2
 done
 
-# Change to repository directory (where dependencies are properly installed)
-cd ${APP_ROOT}
+# Change to repository directory (where scripts/deps are installed)
+cd ${GITHUB_REPO}
 
-# Start the Node.js server from the .output directory
-log_info "Starting NODEMON for Node.js server..."
-exec nodemon --watch ${APP_OUTPUT} --cwd ${APP_ROOT} .output/server/index.mjs
-# Alternative: exec bun --watch "${APP_OUTPUT}/server/index.mjs"
-# Alternative: exec node ${APP_ROOT}/.output/server/index.mjs
+# Start the Vite preview server (defaults to port 4173)
+log_info "Starting Vite preview server on 0.0.0.0 (default port)..."
+exec bun run preview -- --host 0.0.0.0

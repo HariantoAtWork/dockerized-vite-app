@@ -4,6 +4,37 @@
 
 This project represents an innovative approach to deploying and maintaining a Nuxt.js application with automatic updates and zero-downtime deployments. The system is designed around a containerised architecture that automatically pulls updates from a GitHub repository and rebuilds the application without manual intervention.
 
+---
+
+# Building a Self-Updating Vite (Vue) Application with Docker and Supervisord
+
+## Project Overview
+
+This project is a self-updating Docker wrapper for a Vite (Vue) application. The container is responsible for cloning or updating a Git repository, building the app, serving it, and continuously monitoring for upstream changes. This is useful when you want a single container that can keep itself up to date from `main` with minimal operator involvement.
+
+## What changed from the Nuxt variant
+
+- The runtime is no longer a Nuxt server process reading `.output/server/index.mjs`.
+- The build output is now the standard Vite artefact directory: `dist/`.
+- The runtime is now `vite preview`.
+- Vite preview defaults to port `4173`, but this project forces `--port 3000` so Docker can consistently map `3300:3000`.
+
+## Three processes managed by Supervisor
+
+1. Build (`bin/docker-build.sh`)
+   - Clone/pull the repo defined by `GITHUB_REPO_URL`
+   - Install dependencies with Bun
+   - Build the app (`bun run build`) and ensure `dist/` exists
+   - Signal readiness via `.build-complete.flag`
+
+2. Run (`bin/docker-run.sh`)
+   - Wait until build has completed and `dist/` exists
+   - Start the preview server (`bun run preview -- --host 0.0.0.0 --port 3000`)
+
+3. Watch (`bin/docker-watch.sh`)
+   - Poll `origin/main` for new commits
+   - Trigger rebuilds and restart the app after successful builds
+
 ## Architecture Highlights
 
 ### Core Concept: Self-Updating Container

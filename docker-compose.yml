@@ -3,17 +3,19 @@ volumes:
   # External volumes for pnpm and bun cache
   # -- docker volume create pnpm-store && docker volume create bun-cache
   bun-cache:
+    name: bun-cache
     external: true
   pnpm-store:
+    name: pnpm-store
     external: true
 
 services:
-  nuxt-app:
+  vite-app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3300:3000"
+      - "3300:4173"
     environment:
       - NODE_ENV=production
       - GITHUB_REPO_URL=${GITHUB_REPO_URL}
@@ -28,7 +30,7 @@ services:
       - bun-cache:/root/.bun/install/cache
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:3000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:4173/"]
       interval: 30s
       timeout: 10s
       retries: 3
